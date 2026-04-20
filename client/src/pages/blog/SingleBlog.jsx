@@ -37,21 +37,19 @@ export default function SingleBlog() {
   const [commenting, setCommenting] = useState(false);
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const [b, c] = await Promise.all([
-          api.get(`/blogs/${slug}`),
-          api.get(`/comments/${slug}`),
-        ]);
-        setBlog(b.data);
-        setLikes(b.data.likes?.length ?? 0);
-        setLiked(user ? b.data.likes?.includes(user._id) : false);
-        setComments(c.data);
-      } catch { toast.error("Blog not found"); navigate("/"); }
-      finally { setLoading(false); }
-    };
-    fetch();
-  }, [slug]);
+  const fetch = async () => {
+    try {
+      const { data: blogData } = await api.get(`/blogs/${slug}`);
+      setBlog(blogData);
+      setLikes(blogData.likes?.length ?? 0);
+      setLiked(user ? blogData.likes?.includes(user._id) : false);
+      const { data: commentData } = await api.get(`/comments/${blogData._id}`);
+      setComments(commentData);
+    } catch { toast.error("Blog not found"); navigate("/"); }
+    finally { setLoading(false); }
+  };
+  fetch();
+}, [slug]);
 
   const handleLike = async () => {
     if (!user) return toast.error("Please login to like");

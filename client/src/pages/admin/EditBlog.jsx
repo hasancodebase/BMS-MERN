@@ -15,7 +15,7 @@ export default function EditBlog() {
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    api.get(`/blogs/${id}`)
+    api.get(`/blogs/id/${id}`)
       .then(({ data }) => {
         setForm({ title:data.title, description:data.description, category:data.category, tags:data.tags?.join(",") || "", featured:data.featured, status:data.status });
         setPreview(data.image || null);

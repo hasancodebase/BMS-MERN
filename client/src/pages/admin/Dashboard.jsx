@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 
-const gradients = ["from-violet-500 to-indigo-500","from-teal-500 to-cyan-500","from-pink-500 to-rose-500","from-amber-500 to-orange-500"];
+const COLORS = ["bg-ink","bg-coral-dark","bg-teal-800","bg-amber-900","bg-blue-900","bg-purple-900"];
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -17,100 +17,130 @@ export default function Dashboard() {
   }, []);
 
   if (loading) return (
-    <div className="min-h-screen bg-[#080810] flex items-center justify-center">
-      <svg className="animate-spin w-8 h-8 text-violet-500" viewBox="0 0 24 24" fill="none">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-      </svg>
+    <div className="min-h-screen bg-cream flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-coral border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#080810]">
-      <div className="max-w-6xl mx-auto px-6 py-12">
-
-        {/* Header */}
-        <div className="flex items-center justify-between mb-10">
+    <div className="min-h-screen bg-cream">
+      {/* Header */}
+      <div className="bg-white border-b border-border px-6 py-8">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-black text-white" style={{ fontFamily:"'Syne',sans-serif" }}>Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-1">Manage your blog platform</p>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-2 h-2 rounded-full bg-coral" />
+              <span className="text-xs font-bold text-coral-dark uppercase tracking-wider">Admin Panel</span>
+            </div>
+            <h1 className="font-display font-black text-3xl text-ink">Dashboard</h1>
           </div>
           <Link to="/create-blog"
-            className="px-5 py-2.5 rounded-xl text-sm font-medium text-white hover:opacity-90 transition-all"
-            style={{ background:"linear-gradient(135deg,#7c5cfc,#14b8a6)" }}>
+            className="bg-ink text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/80 transition-all">
             + New Blog
           </Link>
         </div>
+      </div>
 
-        {/* Stat Cards */}
+      <div className="max-w-6xl mx-auto px-6 py-10">
+
+        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           {[
-            { label:"Total Blogs", value: stats?.totalBlogs ?? 0, icon:"📝", color:"border-violet-500/20 bg-violet-500/5" },
-            { label:"Total Users", value: stats?.totalUsers ?? 0, icon:"👥", color:"border-teal-500/20 bg-teal-500/5" },
-            { label:"Recent Posts", value: stats?.recentBlogs?.length ?? 0, icon:"🔥", color:"border-pink-500/20 bg-pink-500/5" },
-            { label:"Published", value: stats?.totalBlogs ?? 0, icon:"✅", color:"border-amber-500/20 bg-amber-500/5" },
+            { label:"Total Blogs", value:stats?.totalBlogs??0, icon:"📝", border:"border-l-4 border-l-ink" },
+            { label:"Total Users", value:stats?.totalUsers??0, icon:"👥", border:"border-l-4 border-l-coral" },
+            { label:"Recent Posts", value:stats?.recentBlogs?.length??0, icon:"🔥", border:"border-l-4 border-l-teal-600" },
+            { label:"Published", value:stats?.totalBlogs??0, icon:"✅", border:"border-l-4 border-l-amber-600" },
           ].map((s) => (
-            <div key={s.label} className={`border ${s.color} rounded-2xl p-5`}>
-              <div className="text-2xl mb-3">{s.icon}</div>
-              <div className="text-3xl font-black text-white mb-1" style={{ fontFamily:"'Syne',sans-serif" }}>{s.value}</div>
-              <div className="text-xs text-gray-500">{s.label}</div>
+            <div key={s.label} className={`bg-white border border-border rounded-xl p-5 ${s.border}`}>
+              <div className="text-xl mb-3">{s.icon}</div>
+              <div className="font-display font-black text-3xl text-ink mb-1">{s.value}</div>
+              <div className="text-xs text-ink-muted font-medium">{s.label}</div>
             </div>
           ))}
         </div>
 
-        {/* Recent Blogs */}
-        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden mb-8">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.05]">
-            <h2 className="text-base font-semibold text-white" style={{ fontFamily:"'Syne',sans-serif" }}>Recent Blogs</h2>
-            <Link to="/my-blogs" className="text-xs text-violet-400 hover:text-violet-300 transition-colors">View all →</Link>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* Recent Blogs */}
+          <div className="lg:col-span-2 bg-white border border-border rounded-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h2 className="font-display font-bold text-lg text-ink">Recent Blogs</h2>
+              <Link to="/my-blogs" className="text-xs font-bold text-coral hover:text-coral-dark transition-colors">View all →</Link>
+            </div>
+            {!stats?.recentBlogs?.length ? (
+              <div className="text-center py-16 text-ink-faint text-sm">No blogs yet</div>
+            ) : (
+              <div className="divide-y divide-border">
+                {stats.recentBlogs.map((blog) => {
+                  const c = COLORS[blog.title?.charCodeAt(0) % COLORS.length ?? 0];
+                  return (
+                    <div key={blog._id} className="flex items-center gap-4 px-6 py-4 hover:bg-cream transition-colors">
+                      <div className={`w-10 h-10 rounded-xl ${c} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
+                        {blog.title?.[0]?.toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-ink truncate">{blog.title}</p>
+                        <p className="text-xs text-ink-faint">{blog.author?.name} · {new Date(blog.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 uppercase tracking-wider">
+                        {blog.category}
+                      </span>
+                      <div className="flex gap-2">
+                        <Link to={`/edit-blog/${blog._id}`}
+                          className="w-8 h-8 rounded-lg border border-border bg-cream flex items-center justify-center text-ink-muted hover:text-ink hover:border-ink transition-all text-sm">
+                          ✎
+                        </Link>
+                        <Link to={`/blogs/${blog.slug}`}
+                          className="w-8 h-8 rounded-lg border border-border bg-cream flex items-center justify-center text-ink-muted hover:text-ink hover:border-ink transition-all text-sm">
+                          →
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-          {stats?.recentBlogs?.length === 0 ? (
-            <div className="text-center py-12 text-gray-600 text-sm">No blogs yet</div>
-          ) : (
-            <div className="divide-y divide-white/[0.04]">
-              {stats?.recentBlogs?.map((blog) => {
-                const g = gradients[blog.title?.charCodeAt(0) % gradients.length ?? 0];
-                return (
-                  <div key={blog._id} className="flex items-center gap-4 px-6 py-4 hover:bg-white/[0.02] transition-colors">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${g} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
-                      {blog.title?.[0]?.toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{blog.title}</p>
-                      <p className="text-xs text-gray-500">{blog.author?.name} • {new Date(blog.createdAt).toLocaleDateString()}</p>
-                    </div>
-                    <span className="text-xs px-2.5 py-1 rounded-full bg-violet-500/15 text-violet-300">{blog.category}</span>
-                    <div className="flex gap-2">
-                      <Link to={`/edit-blog/${blog._id}`}
-                        className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-gray-400 hover:text-white transition-all text-sm">
-                        ✎
-                      </Link>
-                      <Link to={`/blogs/${blog.slug}`}
-                        className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-gray-400 hover:text-white transition-all text-sm">
-                        →
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label:"Write Blog", icon:"✍", to:"/create-blog" },
-            { label:"My Blogs", icon:"📚", to:"/my-blogs" },
-            { label:"View Site", icon:"🌐", to:"/" },
-            { label:"Profile", icon:"👤", to:"/profile" },
-          ].map((a) => (
-            <Link key={a.label} to={a.to}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.1] transition-all group">
-              <span className="text-2xl group-hover:scale-110 transition-transform">{a.icon}</span>
-              <span className="text-xs text-gray-400 group-hover:text-white transition-colors">{a.label}</span>
-            </Link>
-          ))}
+          {/* Quick Actions */}
+          <div className="bg-white border border-border rounded-2xl p-6">
+            <h2 className="font-display font-bold text-lg text-ink mb-5">Quick Actions</h2>
+            <div className="space-y-3">
+              {[
+                { label:"Write New Blog", icon:"✍", to:"/create-blog", primary:true },
+                { label:"My Blogs", icon:"📚", to:"/my-blogs" },
+                { label:"View Site", icon:"🌐", to:"/" },
+                { label:"Profile", icon:"👤", to:"/profile" },
+              ].map((a) => (
+                <Link key={a.label} to={a.to}
+                  className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all ${
+                    a.primary
+                      ? "bg-ink text-white border-ink hover:bg-ink/80"
+                      : "bg-cream border-border text-ink hover:border-ink"
+                  }`}>
+                  <span className="text-lg">{a.icon}</span>
+                  <span className="text-sm font-semibold">{a.label}</span>
+                  <span className="ml-auto text-sm opacity-50">→</span>
+                </Link>
+              ))}
+            </div>
+
+            {/* Mini stats */}
+            <div className="mt-6 pt-5 border-t border-border space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-ink-muted">Total Views</span>
+                <span className="text-sm font-bold text-ink">—</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-ink-muted">Total Likes</span>
+                <span className="text-sm font-bold text-ink">—</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-ink-muted">Platform</span>
+                <span className="text-xs font-bold text-coral">BMS-MERN</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

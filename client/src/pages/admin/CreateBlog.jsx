@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 const CATEGORIES = ["Technology","Health","Business","Education","Travel","Food","Sports","Entertainment","Other"];
 
 export default function CreateBlog() {
-  const [form, setForm] = useState({ title: "", description: "", category: "", tags: "", featured: false });
+  const [form, setForm] = useState({ title:"", description:"", category:"", tags:"", featured:false });
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -21,54 +21,55 @@ export default function CreateBlog() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.title || !form.description || !form.category) return toast.error("Please fill all required fields");
+    if (!form.title || !form.description || !form.category) return toast.error("Fill all required fields");
     setLoading(true);
     try {
-      const formData = new FormData();
-      Object.entries(form).forEach(([k, v]) => formData.append(k, v));
-      if (image) formData.append("image", image);
-      const { data } = await api.post("/blogs", formData, { headers: { "Content-Type": "multipart/form-data" } });
-      toast.success("Blog created successfully!");
+      const fd = new FormData();
+      Object.entries(form).forEach(([k,v]) => fd.append(k,v));
+      if (image) fd.append("image", image);
+      const { data } = await api.post("/blogs", fd, { headers:{ "Content-Type":"multipart/form-data" } });
+      toast.success("Blog published!");
       navigate(`/blogs/${data.slug}`);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create blog");
+      toast.error(err.response?.data?.message || "Failed to publish");
     } finally { setLoading(false); }
   };
 
-  const inputClass = "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-violet-500/60 transition-all";
-  const labelClass = "block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider";
+  const inp = "w-full bg-white border border-border rounded-xl px-4 py-3 text-sm text-ink placeholder-ink-faint focus:outline-none focus:border-ink transition-all font-sans";
+  const lbl = "block text-xs font-bold text-ink uppercase tracking-wider mb-2";
 
   return (
-    <div className="min-h-screen bg-[#080810]">
-      <div className="max-w-3xl mx-auto px-6 py-12">
-
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-black text-white mb-2" style={{ fontFamily:"'Syne',sans-serif" }}>
-            Write a Blog
-          </h1>
-          <p className="text-sm text-gray-500">Share your story with the world</p>
+    <div className="min-h-screen bg-cream">
+      <div className="bg-white border-b border-border px-6 py-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 rounded-full bg-coral" />
+            <span className="text-xs font-bold text-coral-dark uppercase tracking-wider">New Article</span>
+          </div>
+          <h1 className="font-display font-black text-3xl text-ink">Write a Blog</h1>
         </div>
+      </div>
 
+      <div className="max-w-3xl mx-auto px-6 py-10">
         <form onSubmit={handleSubmit} className="space-y-6">
 
           {/* Cover Image */}
           <div>
-            <label className={labelClass}>Cover Image</label>
+            <label className={lbl}>Cover Image</label>
             <div onClick={() => document.getElementById("imgInput").click()}
-              className="w-full h-48 border-2 border-dashed border-white/[0.1] rounded-2xl flex items-center justify-center cursor-pointer hover:border-violet-500/40 transition-all overflow-hidden relative">
+              className="w-full h-52 border-2 border-dashed border-border rounded-2xl overflow-hidden cursor-pointer hover:border-ink transition-all relative group bg-white">
               {preview ? (
-                <img src={preview} alt="preview" className="w-full h-full object-cover" />
+                <>
+                  <img src={preview} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-ink/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span className="text-white text-sm font-semibold">Click to change</span>
+                  </div>
+                </>
               ) : (
-                <div className="text-center">
-                  <p className="text-3xl mb-2">🖼</p>
-                  <p className="text-sm text-gray-500">Click to upload cover image</p>
-                  <p className="text-xs text-gray-600 mt-1">JPG, PNG, WEBP</p>
-                </div>
-              )}
-              {preview && (
-                <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <p className="text-white text-sm">Click to change</p>
+                <div className="w-full h-full flex flex-col items-center justify-center text-ink-faint">
+                  <span className="text-4xl mb-3">🖼</span>
+                  <p className="text-sm font-medium">Click to upload cover image</p>
+                  <p className="text-xs mt-1">JPG, PNG, WEBP supported</p>
                 </div>
               )}
             </div>
@@ -77,73 +78,69 @@ export default function CreateBlog() {
 
           {/* Title */}
           <div>
-            <label className={labelClass}>Title <span className="text-red-400">*</span></label>
+            <label className={lbl}>Title <span className="text-coral normal-case">*</span></label>
             <input type="text" value={form.title}
-              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-              placeholder="Enter blog title..."
-              className={inputClass} />
+              onChange={(e) => setForm((p) => ({ ...p, title:e.target.value }))}
+              placeholder="Enter your blog title..."
+              className={inp} />
           </div>
 
           {/* Category */}
           <div>
-            <label className={labelClass}>Category <span className="text-red-400">*</span></label>
+            <label className={lbl}>Category <span className="text-coral normal-case">*</span></label>
             <select value={form.category}
-              onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}
-              className="w-full bg-[#1a1a2e] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-violet-500/60 transition-all">
-              <option value="">Select category...</option>
+              onChange={(e) => setForm((p) => ({ ...p, category:e.target.value }))}
+              className={inp}>
+              <option value="">Select a category...</option>
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
 
-          {/* Description */}
+          {/* Content */}
           <div>
-            <label className={labelClass}>Content <span className="text-red-400">*</span></label>
+            <label className={lbl}>Content <span className="text-coral normal-case">*</span></label>
             <textarea value={form.description}
-              onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+              onChange={(e) => setForm((p) => ({ ...p, description:e.target.value }))}
               placeholder="Write your blog content here..."
-              rows={12}
-              className={`${inputClass} resize-none`} />
+              rows={14}
+              className={`${inp} resize-none leading-relaxed`} />
+            <p className="text-xs text-ink-faint mt-1.5">{form.description.length} characters</p>
           </div>
 
           {/* Tags */}
           <div>
-            <label className={labelClass}>Tags <span className="text-gray-600 normal-case">(comma separated)</span></label>
+            <label className={lbl}>Tags <span className="text-ink-faint font-normal normal-case">(comma separated)</span></label>
             <input type="text" value={form.tags}
-              onChange={(e) => setForm((p) => ({ ...p, tags: e.target.value }))}
-              placeholder="react, nodejs, webdev"
-              className={inputClass} />
+              onChange={(e) => setForm((p) => ({ ...p, tags:e.target.value }))}
+              placeholder="react, nodejs, webdev, tutorial"
+              className={inp} />
           </div>
 
-          {/* Featured toggle */}
-          <div className="flex items-center gap-3">
-            <div onClick={() => setForm((p) => ({ ...p, featured: !p.featured }))}
-              className={`w-10 h-5 rounded-full cursor-pointer transition-all duration-300 relative flex-shrink-0 ${form.featured ? "bg-violet-500" : "bg-white/10"}`}>
+          {/* Featured */}
+          <div className="flex items-center gap-3 p-4 bg-white border border-border rounded-xl cursor-pointer"
+            onClick={() => setForm((p) => ({ ...p, featured:!p.featured }))}>
+            <div className={`w-10 h-5 rounded-full transition-all duration-300 relative flex-shrink-0 ${form.featured ? "bg-ink" : "bg-border"}`}>
               <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ${form.featured ? "left-5" : "left-0.5"}`} />
             </div>
-            <span className="text-sm text-gray-400 cursor-pointer select-none"
-              onClick={() => setForm((p) => ({ ...p, featured: !p.featured }))}>
-              Mark as Featured Post
-            </span>
+            <div>
+              <p className="text-sm font-semibold text-ink">Feature this post</p>
+              <p className="text-xs text-ink-muted">Featured posts appear on the homepage</p>
+            </div>
           </div>
 
-          {/* Submit */}
+          {/* Actions */}
           <div className="flex gap-4 pt-2">
             <button type="button" onClick={() => navigate(-1)}
-              className="flex-1 py-3 rounded-xl text-sm font-medium text-gray-400 bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] transition-all">
+              className="flex-1 py-3 rounded-xl text-sm font-semibold text-ink-muted bg-white border border-border hover:border-ink transition-all">
               Cancel
             </button>
             <button type="submit" disabled={loading}
-              className="flex-1 py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60 hover:opacity-90 transition-all"
-              style={{ background:"linear-gradient(135deg,#7c5cfc,#14b8a6)" }}>
+              className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-ink hover:bg-ink/80 disabled:opacity-60 transition-all flex items-center justify-center gap-2">
               {loading ? (
-                <><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                </svg>Publishing...</>
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Publishing...</>
               ) : "Publish Blog →"}
             </button>
           </div>
-
         </form>
       </div>
     </div>

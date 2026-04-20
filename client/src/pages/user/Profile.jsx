@@ -4,17 +4,17 @@ import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 
-const gradients = ["from-violet-500 to-indigo-500","from-teal-500 to-cyan-500","from-pink-500 to-rose-500","from-amber-500 to-orange-500"];
+const COLORS = ["bg-ink","bg-coral-dark","bg-teal-800","bg-amber-900","bg-blue-900","bg-purple-900"];
 
 export default function Profile() {
   const { user, login, logout } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: user?.name || "", bio: user?.bio || "" });
-  const [passwords, setPasswords] = useState({ currentPassword: "", newPassword: "", confirm: "" });
+  const [form, setForm] = useState({ name:user?.name||"", bio:user?.bio||"" });
+  const [pw, setPw] = useState({ currentPassword:"", newPassword:"", confirm:"" });
   const [loading, setLoading] = useState(false);
-  const [passLoading, setPassLoading] = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
   const [tab, setTab] = useState("profile");
-  const g = gradients[user?.name?.charCodeAt(0) % gradients.length ?? 0];
+  const c = COLORS[user?.name?.charCodeAt(0) % COLORS.length ?? 0];
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -24,121 +24,130 @@ export default function Profile() {
       login(localStorage.getItem("token"), data);
       toast.success("Profile updated!");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Update failed");
+      toast.error(err.response?.data?.message || "Failed");
     } finally { setLoading(false); }
   };
 
   const handlePassword = async (e) => {
     e.preventDefault();
-    if (passwords.newPassword !== passwords.confirm) return toast.error("Passwords don't match");
-    if (passwords.newPassword.length < 6) return toast.error("Password must be 6+ characters");
-    setPassLoading(true);
+    if (pw.newPassword !== pw.confirm) return toast.error("Passwords don't match");
+    if (pw.newPassword.length < 6) return toast.error("Min 6 characters");
+    setPwLoading(true);
     try {
-      await api.put("/auth/change-password", { currentPassword: passwords.currentPassword, newPassword: passwords.newPassword });
+      await api.put("/auth/change-password", { currentPassword:pw.currentPassword, newPassword:pw.newPassword });
       toast.success("Password changed!");
-      setPasswords({ currentPassword: "", newPassword: "", confirm: "" });
+      setPw({ currentPassword:"", newPassword:"", confirm:"" });
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed");
-    } finally { setPassLoading(false); }
+    } finally { setPwLoading(false); }
   };
 
-  const inputClass = "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-violet-500/60 transition-all";
-  const labelClass = "block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider";
+  const inp = "w-full bg-cream border border-border rounded-xl px-4 py-3 text-sm text-ink placeholder-ink-faint focus:outline-none focus:border-ink transition-all font-sans";
+  const lbl = "block text-xs font-bold text-ink uppercase tracking-wider mb-2";
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-12">
-      <h1 className="text-3xl font-black text-white mb-8" style={{ fontFamily:"'Syne',sans-serif" }}>Profile</h1>
-
-      {/* Avatar */}
-      <div className="flex items-center gap-5 mb-8 p-6 bg-white/[0.02] border border-white/[0.06] rounded-2xl">
-        <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${g} flex items-center justify-center text-white text-3xl font-black flex-shrink-0`}>
-          {user?.name?.[0]?.toUpperCase()}
-        </div>
-        <div>
-          <h2 className="text-lg font-bold text-white">{user?.name}</h2>
-          <p className="text-sm text-gray-500">{user?.email}</p>
-          <span className={`inline-block mt-1 text-xs px-3 py-0.5 rounded-full ${user?.role === "admin" ? "bg-violet-500/15 text-violet-300" : "bg-white/5 text-gray-400"}`}>
-            {user?.role === "admin" ? "★ Admin" : "User"}
-          </span>
+    <div className="min-h-screen bg-cream">
+      <div className="bg-white border-b border-border px-6 py-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 rounded-full bg-coral" />
+            <span className="text-xs font-bold text-coral-dark uppercase tracking-wider">Account</span>
+          </div>
+          <h1 className="font-display font-black text-3xl text-ink">Profile</h1>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        {["profile", "password"].map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium capitalize transition-all ${
-              tab === t ? "text-white" : "bg-white/[0.03] border border-white/[0.07] text-gray-400 hover:text-white"
-            }`}
-            style={tab === t ? { background:"linear-gradient(135deg,#7c5cfc,#14b8a6)" } : {}}>
-            {t === "profile" ? "Edit Profile" : "Change Password"}
-          </button>
-        ))}
-      </div>
+      <div className="max-w-2xl mx-auto px-6 py-10">
 
-      {/* Profile Tab */}
-      {tab === "profile" && (
-        <form onSubmit={handleUpdate} className="space-y-5 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6">
-          <div>
-            <label className={labelClass}>Full Name</label>
-            <input className={inputClass} value={form.name}
-              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
+        {/* User Card */}
+        <div className="bg-white border border-border rounded-2xl p-6 mb-6 flex items-center gap-5">
+          <div className={`w-20 h-20 rounded-2xl ${c} flex items-center justify-center text-white font-black text-3xl flex-shrink-0`}>
+            {user?.name?.[0]?.toUpperCase()}
           </div>
-          <div>
-            <label className={labelClass}>Bio</label>
-            <textarea className={`${inputClass} resize-none`} rows={3} value={form.bio}
-              placeholder="Tell something about yourself..."
-              onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))} />
+          <div className="flex-1">
+            <h2 className="font-display font-bold text-xl text-ink">{user?.name}</h2>
+            <p className="text-sm text-ink-muted">{user?.email}</p>
+            {user?.bio && <p className="text-sm text-ink-soft mt-1 leading-relaxed">{user.bio}</p>}
+            <span className={`inline-block mt-2 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
+              user?.role==="admin" ? "bg-ink text-white" : "bg-cream border border-border text-ink-muted"
+            }`}>
+              {user?.role==="admin" ? "★ Admin" : "User"}
+            </span>
           </div>
-          <div>
-            <label className={labelClass}>Email</label>
-            <input className={`${inputClass} opacity-50 cursor-not-allowed`} value={user?.email} disabled />
-          </div>
-          <button type="submit" disabled={loading}
-            className="w-full py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-60 hover:opacity-90 transition-all"
-            style={{ background:"linear-gradient(135deg,#7c5cfc,#14b8a6)" }}>
-            {loading ? "Saving..." : "Save Changes →"}
-          </button>
-        </form>
-      )}
+        </div>
 
-      {/* Password Tab */}
-      {tab === "password" && (
-        <form onSubmit={handlePassword} className="space-y-5 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6">
-          <div>
-            <label className={labelClass}>Current Password</label>
-            <input type="password" className={inputClass} value={passwords.currentPassword}
-              onChange={(e) => setPasswords((p) => ({ ...p, currentPassword: e.target.value }))} />
-          </div>
-          <div>
-            <label className={labelClass}>New Password</label>
-            <input type="password" className={inputClass} value={passwords.newPassword}
-              onChange={(e) => setPasswords((p) => ({ ...p, newPassword: e.target.value }))} />
-          </div>
-          <div>
-            <label className={labelClass}>Confirm New Password</label>
-            <div className="relative">
-              <input type="password" className={inputClass} value={passwords.confirm}
-                onChange={(e) => setPasswords((p) => ({ ...p, confirm: e.target.value }))} />
-              {passwords.confirm.length > 0 && (
-                <span className="absolute right-4 top-1/2 -translate-y-1/2">
-                  {passwords.newPassword === passwords.confirm ? "✅" : "❌"}
-                </span>
-              )}
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          {["profile","password"].map((t) => (
+            <button key={t} onClick={() => setTab(t)}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold capitalize transition-all ${
+                tab===t ? "bg-ink text-white" : "bg-white border border-border text-ink-muted hover:border-ink hover:text-ink"
+              }`}>
+              {t==="profile" ? "Edit Profile" : "Change Password"}
+            </button>
+          ))}
+        </div>
+
+        {tab==="profile" && (
+          <form onSubmit={handleUpdate} className="bg-white border border-border rounded-2xl p-6 space-y-5">
+            <div>
+              <label className={lbl}>Full Name</label>
+              <input className={inp} value={form.name}
+                onChange={(e) => setForm((p) => ({ ...p, name:e.target.value }))} />
             </div>
-          </div>
-          <button type="submit" disabled={passLoading}
-            className="w-full py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-60 hover:opacity-90 transition-all"
-            style={{ background:"linear-gradient(135deg,#7c5cfc,#14b8a6)" }}>
-            {passLoading ? "Changing..." : "Change Password →"}
-          </button>
-        </form>
-      )}
+            <div>
+              <label className={lbl}>Bio</label>
+              <textarea className={`${inp} resize-none`} rows={3} value={form.bio}
+                placeholder="Tell something about yourself..."
+                onChange={(e) => setForm((p) => ({ ...p, bio:e.target.value }))} />
+            </div>
+            <div>
+              <label className={lbl}>Email <span className="text-ink-faint font-normal normal-case">(cannot change)</span></label>
+              <input className={`${inp} opacity-50 cursor-not-allowed`} value={user?.email} disabled />
+            </div>
+            <button type="submit" disabled={loading}
+              className="w-full py-3 rounded-xl text-sm font-bold text-white bg-ink hover:bg-ink/80 disabled:opacity-60 transition-all">
+              {loading ? "Saving..." : "Save Changes →"}
+            </button>
+          </form>
+        )}
 
-      <button onClick={() => { logout(); navigate("/"); }}
-        className="w-full mt-4 py-3 rounded-xl text-sm font-medium text-red-400 bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 transition-all">
-        Sign Out
-      </button>
+        {tab==="password" && (
+          <form onSubmit={handlePassword} className="bg-white border border-border rounded-2xl p-6 space-y-5">
+            <div>
+              <label className={lbl}>Current Password</label>
+              <input type="password" className={inp} value={pw.currentPassword}
+                onChange={(e) => setPw((p) => ({ ...p, currentPassword:e.target.value }))} />
+            </div>
+            <div>
+              <label className={lbl}>New Password</label>
+              <input type="password" className={inp} value={pw.newPassword}
+                onChange={(e) => setPw((p) => ({ ...p, newPassword:e.target.value }))} />
+            </div>
+            <div>
+              <label className={lbl}>Confirm New Password</label>
+              <div className="relative">
+                <input type="password" className={inp} value={pw.confirm}
+                  onChange={(e) => setPw((p) => ({ ...p, confirm:e.target.value }))} />
+                {pw.confirm.length > 0 && (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm">
+                    {pw.newPassword===pw.confirm ? "✅" : "❌"}
+                  </span>
+                )}
+              </div>
+            </div>
+            <button type="submit" disabled={pwLoading}
+              className="w-full py-3 rounded-xl text-sm font-bold text-white bg-ink hover:bg-ink/80 disabled:opacity-60 transition-all">
+              {pwLoading ? "Changing..." : "Change Password →"}
+            </button>
+          </form>
+        )}
+
+        <button onClick={() => { logout(); navigate("/"); }}
+          className="w-full mt-4 py-3 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 transition-all">
+          Sign Out
+        </button>
+      </div>
     </div>
   );
 }

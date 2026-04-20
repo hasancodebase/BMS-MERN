@@ -23,7 +23,12 @@ export const getBlogs = async (req, res) => {
 
 export const getBlog = async (req, res) => {
   try {
-    const blog = await Blog.findOne({ slug: req.params.slug }).populate("author", "name avatar bio");
+    const { slug } = req.params;
+    const blog = await Blog.findOne(
+      slug.match(/^[0-9a-fA-F]{24}$/)
+        ? { _id: slug }
+        : { slug }
+    ).populate("author", "name avatar bio");
     if (!blog) return res.status(404).json({ message: "Blog not found" });
     blog.views += 1;
     await blog.save();
@@ -33,10 +38,23 @@ export const getBlog = async (req, res) => {
 
 export const createBlog = async (req, res) => {
   try {
-    const { title, description, category, tags, featured } = req.body;
+    const { title, description, category, tags, featured, status } = req.body;
+    if (!title || !description || !category) {
+      return res.status(400).json({ message: "Title, description and category are required" });
+    }
     const slug = slugify(title, { lower: true, strict: true }) + "-" + Date.now();
     const image = req.file?.path || "";
-    const blog = await Blog.create({ title, slug, description, category, tags: tags?.split(",") || [], image, author: req.user._id, featured: featured || false });
+    const blog = await Blog.create({
+      title,
+      slug,
+      description,
+      category,
+      tags: tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : [],
+      image,
+      author: req.user._id,
+      featured: featured === "true" || featured === true,
+      status: status || "published",
+    });
     res.status(201).json(blog);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -49,10 +67,15 @@ export const updateBlog = async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     const { title, description, category, tags, featured, status } = req.body;
     const image = req.file?.path || blog.image;
-    const updated = await Blog.findByIdAndUpdate(req.params.id,
-      { title, description, category, tags: tags?.split(",") || blog.tags, image, featured, status },
-      { new: true }
-    ).populate("author", "name avatar");
+    const updated = await Blog.findByIdAndUpdate(req.params.id, {
+      title,
+      description,
+      category,
+      tags: tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : blog.tags,
+      image,
+      featured: featured === "true" || featured === true,
+      status: status || blog.status,
+    }, { new: true }).populate("author", "name avatar");
     res.json(updated);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -89,9 +112,10 @@ export const getMyBlogs = async (req, res) => {
 
 export const getAdminStats = async (req, res) => {
   try {
+    const User = (await import("../models/User.js")).default;
     const [totalBlogs, totalUsers, recentBlogs] = await Promise.all([
       Blog.countDocuments(),
-      (await import("../models/User.js")).default.countDocuments(),
+      User.countDocuments(),
       Blog.find().sort({ createdAt: -1 }).limit(5).populate("author", "name"),
     ]);
     res.json({ totalBlogs, totalUsers, recentBlogs });

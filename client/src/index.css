@@ -3,5 +3,22 @@
 @tailwind utilities;
 
 @layer base {
-  body { @apply bg-[#080810] text-gray-100 font-sans; }
+  body {
+    @apply bg-cream text-ink font-sans;
+  }
+}
+
+@layer components {
+  .cat-badge {
+    @apply inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider;
+  }
+  .btn-primary {
+    @apply bg-ink text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-ink/90 transition-all;
+  }
+  .btn-coral {
+    @apply bg-coral text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-coral-dark transition-all;
+  }
+  .card {
+    @apply bg-white border border-border rounded-2xl overflow-hidden;
+  }
 }

@@ -2,51 +2,87 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
 
-const CATEGORIES = ["All", "Technology", "Health", "Business", "Education", "Travel", "Food", "Sports", "Entertainment", "Other"];
+const CATEGORIES = ["All","Technology","Health","Business","Education","Travel","Food","Sports","Entertainment","Other"];
 
-const gradients = ["from-violet-500 to-indigo-500", "from-teal-500 to-cyan-500", "from-pink-500 to-rose-500", "from-amber-500 to-orange-500", "from-green-500 to-emerald-500", "from-blue-500 to-sky-500"];
+const COLORS = [
+  { bg:"bg-ink", text:"text-white/20" },
+  { bg:"bg-coral-dark", text:"text-white/20" },
+  { bg:"bg-teal-800", text:"text-white/20" },
+  { bg:"bg-amber-900", text:"text-white/20" },
+  { bg:"bg-blue-900", text:"text-white/20" },
+  { bg:"bg-purple-900", text:"text-white/20" },
+];
 
-function BlogCard({ blog }) {
-  const g = gradients[blog.title?.charCodeAt(0) % gradients.length ?? 0];
+function Badge({ category }) {
+  const map = {
+    Technology: "bg-blue-50 text-blue-800 border-blue-200",
+    Health: "bg-green-50 text-green-800 border-green-200",
+    Business: "bg-teal-50 text-teal-800 border-teal-200",
+    Education: "bg-purple-50 text-purple-800 border-purple-200",
+    Travel: "bg-amber-50 text-amber-800 border-amber-200",
+    Food: "bg-orange-50 text-orange-800 border-orange-200",
+    Sports: "bg-red-50 text-red-800 border-red-200",
+    Entertainment: "bg-pink-50 text-pink-800 border-pink-200",
+    Other: "bg-gray-50 text-gray-700 border-gray-200",
+  };
   return (
-    <Link to={`/blogs/${blog.slug}`}
-      className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-violet-500/30 hover:bg-white/[0.04] transition-all duration-300 group">
-      {blog.image ? (
-        <img src={blog.image} alt={blog.title} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
-      ) : (
-        <div className={`w-full h-48 bg-gradient-to-br ${g} flex items-center justify-center text-4xl font-black text-white/20`}
-          style={{ fontFamily:"'Syne',sans-serif" }}>
-          {blog.title?.[0]?.toUpperCase()}
-        </div>
-      )}
+    <span className={`cat-badge border ${map[category] || map.Other}`}>{category}</span>
+  );
+}
+
+function CardCover({ blog, height = "h-48" }) {
+  const c = COLORS[blog.title?.charCodeAt(0) % COLORS.length ?? 0];
+  if (blog.image) return <img src={blog.image} alt={blog.title} className={`w-full ${height} object-cover`} />;
+  return (
+    <div className={`w-full ${height} ${c.bg} flex items-center justify-center`}>
+      <span className={`font-display font-black text-5xl ${c.text}`}>{blog.title?.[0]?.toUpperCase()}</span>
+    </div>
+  );
+}
+
+function FeaturedCard({ blog }) {
+  return (
+    <Link to={`/blogs/${blog.slug}`} className="card group block">
+      <CardCover blog={blog} height="h-56" />
       <div className="p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-violet-500/15 text-violet-300">
-            {blog.category}
-          </span>
-          <span className="text-[11px] text-gray-600">
-            {new Date(blog.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-          </span>
-        </div>
-        <h3 className="text-white font-semibold text-base mb-2 line-clamp-2 group-hover:text-violet-300 transition-colors"
-          style={{ fontFamily:"'Syne',sans-serif" }}>
+        <Badge category={blog.category} />
+        <h3 className="font-display font-bold text-lg text-ink leading-snug mt-2 mb-2 group-hover:text-coral transition-colors line-clamp-2">
           {blog.title}
         </h3>
-        <p className="text-gray-500 text-sm line-clamp-2 mb-4">
+        <p className="text-sm text-ink-muted line-clamp-2 mb-4 leading-relaxed">
           {blog.description?.replace(/<[^>]*>/g, "")}
         </p>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${g} flex items-center justify-center text-white text-xs font-bold`}>
+            <div className="w-7 h-7 rounded-lg bg-ink flex items-center justify-center text-white text-xs font-bold">
               {blog.author?.name?.[0]?.toUpperCase()}
             </div>
-            <span className="text-xs text-gray-400">{blog.author?.name}</span>
+            <span className="text-xs font-medium text-ink-soft">{blog.author?.name}</span>
           </div>
-          <div className="flex items-center gap-3 text-xs text-gray-600">
-            <span>❤ {blog.likes?.length ?? 0}</span>
-            <span>👁 {blog.views ?? 0}</span>
+          <div className="flex gap-3 text-xs text-ink-faint">
+            <span>♥ {blog.likes?.length ?? 0}</span>
+            <span>◎ {blog.views ?? 0}</span>
           </div>
         </div>
+      </div>
+    </Link>
+  );
+}
+
+function SmallCard({ blog }) {
+  return (
+    <Link to={`/blogs/${blog.slug}`} className="card group flex gap-4 p-4 hover:border-coral/30 transition-all">
+      <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+        <CardCover blog={blog} height="h-20" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <Badge category={blog.category} />
+        <h3 className="font-display font-bold text-sm text-ink mt-1.5 line-clamp-2 group-hover:text-coral transition-colors leading-snug">
+          {blog.title}
+        </h3>
+        <p className="text-xs text-ink-faint mt-1">
+          {blog.author?.name} · {new Date(blog.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric"})}
+        </p>
       </div>
     </Link>
   );
@@ -60,9 +96,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    const fetchBlogs = async () => {
+    const fetch = async () => {
       setLoading(true);
       try {
         const params = { page, limit: 6 };
@@ -71,9 +108,10 @@ export default function Home() {
         const { data } = await api.get("/blogs", { params });
         setBlogs(data.blogs);
         setPages(data.pages);
-      } catch { } finally { setLoading(false); }
+        setTotal(data.total);
+      } catch {} finally { setLoading(false); }
     };
-    fetchBlogs();
+    fetch();
   }, [category, search, page]);
 
   useEffect(() => {
@@ -83,106 +121,131 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12">
-
+    <div>
       {/* Hero */}
-      <div className="text-center mb-16">
-        <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-4 py-1.5 mb-6">
-          <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-          <span className="text-xs text-violet-300 font-medium">Welcome to BMS-MERN</span>
-        </div>
-        <h1 className="text-5xl font-black text-white mb-4 leading-tight" style={{ fontFamily:"'Syne',sans-serif" }}>
-          Discover Amazing<br />
-          <span className="text-transparent bg-clip-text" style={{ backgroundImage:"linear-gradient(135deg,#7c5cfc,#14b8a6)" }}>
-            Blog Stories
-          </span>
-        </h1>
-        <p className="text-gray-400 text-lg max-w-xl mx-auto mb-8">
-          Read, write and share stories that matter. Join our community of writers and readers.
-        </p>
-
-        {/* Search */}
-        <div className="relative max-w-lg mx-auto">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">⌕</span>
-          <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search blogs..."
-            className="w-full bg-white/[0.04] border border-white/[0.08] rounded-2xl pl-10 pr-4 py-3.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-violet-500/60 transition-all" />
-        </div>
-      </div>
-
-      {/* Featured */}
-      {featured.length > 0 && !search && category === "All" && (
-        <div className="mb-16">
-          <h2 className="text-xl font-bold text-white mb-6" style={{ fontFamily:"'Syne',sans-serif" }}>
-            ⭐ Featured Posts
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {featured.map((blog) => <BlogCard key={blog._id} blog={blog} />)}
+      <div className="bg-white border-b border-border py-16 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="inline-flex items-center gap-2 bg-coral-light border border-coral/20 rounded-full px-4 py-1.5 mb-5">
+            <div className="w-1.5 h-1.5 rounded-full bg-coral" />
+            <span className="text-[11px] font-bold text-coral-dark uppercase tracking-wider">Blog Platform</span>
           </div>
-        </div>
-      )}
-
-      {/* Categories */}
-      <div className="flex gap-2 flex-wrap mb-8">
-        {CATEGORIES.map((cat) => (
-          <button key={cat} onClick={() => { setCategory(cat); setPage(1); }}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              category === cat
-                ? "text-white"
-                : "bg-white/[0.03] border border-white/[0.07] text-gray-400 hover:text-white hover:bg-white/[0.06]"
-            }`}
-            style={category === cat ? { background:"linear-gradient(135deg,#7c5cfc,#14b8a6)" } : {}}>
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Blog Grid */}
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <svg className="animate-spin w-8 h-8 text-violet-500" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-          </svg>
-        </div>
-      ) : blogs.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-4xl mb-4">📝</p>
-          <p className="text-gray-400 text-lg">No blogs found</p>
-          <p className="text-gray-600 text-sm mt-2">Be the first to write one!</p>
-          <Link to="/create-blog" className="inline-block mt-4 px-6 py-2.5 rounded-xl text-sm font-medium text-white hover:opacity-90 transition-all"
-            style={{ background:"linear-gradient(135deg,#7c5cfc,#14b8a6)" }}>
-            Write a Blog →
-          </Link>
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {blogs.map((blog) => <BlogCard key={blog._id} blog={blog} />)}
-          </div>
-
-          {/* Pagination */}
-          {pages > 1 && (
-            <div className="flex justify-center gap-2 mt-10">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-                className="px-4 py-2 rounded-xl text-sm text-gray-400 bg-white/[0.04] border border-white/[0.08] disabled:opacity-30 hover:bg-white/[0.08] transition-all">
-                ← Prev
-              </button>
-              {Array.from({ length: pages }, (_, i) => i + 1).map((p) => (
-                <button key={p} onClick={() => setPage(p)}
-                  className={`w-10 h-10 rounded-xl text-sm transition-all ${page === p ? "text-white" : "text-gray-400 bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08]"}`}
-                  style={page === p ? { background:"linear-gradient(135deg,#7c5cfc,#14b8a6)" } : {}}>
-                  {p}
-                </button>
-              ))}
-              <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page === pages}
-                className="px-4 py-2 rounded-xl text-sm text-gray-400 bg-white/[0.04] border border-white/[0.08] disabled:opacity-30 hover:bg-white/[0.08] transition-all">
-                Next →
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div>
+              <h1 className="font-display font-black text-5xl text-ink leading-tight mb-4">
+                Stories that<br /><span className="text-coral">Inspire</span> & Inform
+              </h1>
+              <p className="text-ink-muted max-w-md leading-relaxed">
+                Discover thoughtful articles from writers around the world. Ideas that challenge, entertain and educate.
+              </p>
+            </div>
+            <div className="flex items-center gap-0 bg-cream border-2 border-border rounded-xl p-1 max-w-sm w-full">
+              <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                placeholder="Search articles..."
+                className="bg-transparent flex-1 px-4 py-2 text-sm text-ink placeholder-ink-faint outline-none font-sans" />
+              <button className="bg-ink text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-ink/80 transition-all">
+                Search
               </button>
             </div>
-          )}
-        </>
-      )}
+          </div>
+        </div>
+      </div>
+
+      {/* Categories */}
+      <div className="bg-white border-b border-border px-6 py-4">
+        <div className="max-w-6xl mx-auto flex gap-2 overflow-x-auto">
+          {CATEGORIES.map((cat) => (
+            <button key={cat} onClick={() => { setCategory(cat); setPage(1); }}
+              className={`px-4 py-2 rounded-full text-xs font-bold border whitespace-nowrap transition-all ${
+                category === cat
+                  ? "bg-ink text-white border-ink"
+                  : "bg-white text-ink-muted border-border hover:border-ink hover:text-ink"
+              }`}>
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-6 py-12">
+
+        {/* Featured */}
+        {featured.length > 0 && !search && category === "All" && (
+          <div className="mb-14">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-display font-bold text-2xl text-ink">Featured Posts</h2>
+              <Link to="/blogs" className="text-xs font-bold text-coral hover:text-coral-dark transition-colors">See all →</Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {featured.map((blog) => <FeaturedCard key={blog._id} blog={blog} />)}
+            </div>
+          </div>
+        )}
+
+        {/* Latest */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-display font-bold text-2xl text-ink">
+            {search ? `Results for "${search}"` : category !== "All" ? category : "Latest Articles"}
+          </h2>
+          <span className="text-xs text-ink-faint">{total} articles</span>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <div className="w-8 h-8 border-2 border-coral border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : blogs.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-2xl border border-border">
+            <p className="font-display font-bold text-2xl text-ink mb-2">No articles found</p>
+            <p className="text-ink-muted text-sm mb-6">Be the first to write about this topic!</p>
+            <Link to="/create-blog" className="bg-ink text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-ink/80 transition-all">
+              Write a Blog →
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              {blogs.map((blog) => <SmallCard key={blog._id} blog={blog} />)}
+            </div>
+
+            {/* Pagination */}
+            {pages > 1 && (
+              <div className="flex justify-center gap-2 mt-8">
+                <button onClick={() => setPage((p) => Math.max(1, p-1))} disabled={page===1}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-ink-muted border border-border bg-white disabled:opacity-30 hover:border-ink transition-all">
+                  ← Prev
+                </button>
+                {Array.from({ length: pages }, (_, i) => i+1).map((p) => (
+                  <button key={p} onClick={() => setPage(p)}
+                    className={`w-10 h-10 rounded-lg text-sm font-semibold transition-all ${
+                      page===p ? "bg-ink text-white" : "bg-white border border-border text-ink-muted hover:border-ink"
+                    }`}>
+                    {p}
+                  </button>
+                ))}
+                <button onClick={() => setPage((p) => Math.min(pages, p+1))} disabled={page===pages}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-ink-muted border border-border bg-white disabled:opacity-30 hover:border-ink transition-all">
+                  Next →
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Newsletter */}
+        <div className="bg-ink rounded-2xl p-10 mt-16 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div>
+            <h3 className="font-display font-bold text-2xl text-white mb-2">Stay in the loop</h3>
+            <p className="text-white/50 text-sm max-w-sm">Get the best articles delivered to your inbox every week. No spam, ever.</p>
+          </div>
+          <div className="flex gap-2 w-full md:w-auto">
+            <input placeholder="your@email.com"
+              className="bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none flex-1 md:w-56 font-sans" />
+            <button className="bg-coral text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-coral-dark transition-all whitespace-nowrap">
+              Subscribe
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
